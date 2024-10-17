@@ -75,7 +75,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
-        title: Text('Sign Up'),
+        title: Text('Add new User'),
         backgroundColor: primaryColor,
       ),
       body: Padding(
@@ -175,26 +175,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: Text('Sign Up', style: TextStyle(fontSize: 18)),
+                        child: Text('Create', style: TextStyle(fontSize: 18)),
                       ),
               ),
               const SizedBox(height: 16,),
-              Center(
-                child: Column(
-                  children: [
-                    Text('Already have an account?'),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => LoginScreen()),
-                        );
-                      },
-                      child: Text('Login',style: TextStyle(color: accentColor, fontSize: 16)),
-                    ),
-                  ],
-                ),
-              ),
+              // Center(
+              //   child: Column(
+              //     children: [
+              //       Text('Already have an account?'),
+              //       TextButton(
+              //         onPressed: () {
+              //           Navigator.pushReplacement(
+              //             context,
+              //             MaterialPageRoute(builder: (context) => LoginScreen()),
+              //           );
+              //         },
+              //         child: Text('Login',style: TextStyle(color: accentColor, fontSize: 16)),
+              //       ),
+              //     ],
+              //   ),
+              // ),
             ],
           ),
         ),

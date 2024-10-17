@@ -233,24 +233,24 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
               ),
               SizedBox(height: 20),
-              Center(
-                child: Column(
-                  children: [
-                    Text('Don\'t have an account?'),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => SignUpScreen()),
-                        );
-                      },
-                      child: Text('Sign Up',
-                          style: TextStyle(color: accentColor, fontSize: 16)),
-                    ),
-                  ],
-                ),
-              ),
+              // Center(
+              //   child: Column(
+              //     children: [
+              //       Text('Don\'t have an account?'),
+              //       TextButton(
+              //         onPressed: () {
+              //           Navigator.pushReplacement(
+              //             context,
+              //             MaterialPageRoute(
+              //                 builder: (context) => SignUpScreen()),
+              //           );
+              //         },
+              //         child: Text('Sign Up',
+              //             style: TextStyle(color: accentColor, fontSize: 16)),
+              //       ),
+              //     ],
+              //   ),
+              // ),
             ],
           ),
         ),

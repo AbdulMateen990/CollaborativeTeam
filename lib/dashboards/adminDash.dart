@@ -1,6 +1,10 @@
+import 'package:collaborative_workspace/Auth/signUp.dart';
+import 'package:collaborative_workspace/removeUser.dart';
+import 'package:collaborative_workspace/teamProgress.dart';
+import 'package:collaborative_workspace/workspace.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:collaborative_workspace/Auth/login.dart';
+import 'package:collaborative_workspace/Auth/logout.dart';
 
 class AdminDashboard extends StatefulWidget {
   @override
@@ -31,9 +35,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
     });
 
     try {
-      final workspaceResponse = await _supabase.from('workspaces').select('id').select();
-      final userResponse = await _supabase.from('users').select('user_id').select();
-      final teamResponse = await _supabase.from('workspace_members').select('workspace_id').select();
+      final workspaceResponse = await _supabase.from('workspaces').select('id');
+      final userResponse = await _supabase.from('users').select('user_id');
+      final teamResponse = await _supabase.from('workspace_members').select('workspace_id');
 
       setState(() {
         _workspaceCount = workspaceResponse.length;
@@ -56,17 +60,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
     setState(() {
       _isLoading = true;
     });
-
-    await _supabase.auth.signOut();
-
+    await logout(context);
     setState(() {
       _isLoading = false;
     });
-
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => LoginScreen()),
-    );
   }
 
   @override
@@ -79,7 +76,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         actions: [
           IconButton(
             icon: _isLoading ? CircularProgressIndicator(color: Colors.white) : Icon(Icons.logout),
-            onPressed: _isLoading ? null : _logout,
+            onPressed: _isLoading ? null : () async => await _logout(),
           ),
         ],
       ),
@@ -89,7 +86,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Welcome Message
               Text(
                 'Welcome, Admin!',
                 style: TextStyle(
@@ -99,69 +95,49 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 ),
               ),
               SizedBox(height: 20),
-              // Summary Section
-              Card(
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Summary',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: primaryColor,
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildSummaryItem('Workspaces', _workspaceCount, Icons.work),
-                          _buildSummaryItem('Users', _userCount, Icons.people),
-                          _buildSummaryItem('Teams', _teamCount, Icons.group),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              _buildSummarySection(),
               SizedBox(height: 30),
-              // Workspace Management Section
-              Text(
-                'Workspace Management',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: primaryColor),
-              ),
-              SizedBox(height: 10),
-              _buildManagementButton(
-                context,
-                'Create Workspace',
-                Icons.add,
-                '/create_workspace',
-              ),
-              SizedBox(height: 20),
-              _buildManagementButton(
-                context,
-                'Manage Users',
-                Icons.manage_accounts,
-                '/manage_users',
-              ),
-              SizedBox(height: 20),
-              _buildManagementButton(
-                context,
-                'View Team Progress',
-                Icons.bar_chart,
-                '/view_team_progress',
-              ),
+              _buildWorkspaceManagementSection(context),
               SizedBox(height: 30),
-              // Other functional sections can be added here
+              // _buildTaskManagementSection(context),
+              // SizedBox(height: 30),
+              // _buildTimeTrackingSection(context),
+              // SizedBox(height: 30),
+              // _buildCommunicationSection(context),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummarySection() {
+    return Card(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Summary',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: primaryColor,
+              ),
+            ),
+            SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildSummaryItem('Workspaces', _workspaceCount, Icons.work),
+                _buildSummaryItem('Users', _userCount, Icons.people),
+                _buildSummaryItem('Teams', _teamCount, Icons.group),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -173,7 +149,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         Icon(icon, size: 40, color: accentColor),
         SizedBox(height: 5),
         _isFetchingCounts
-            ? CircularProgressIndicator(color: Colors.teal,)
+            ? CircularProgressIndicator(color: Colors.teal)
             : Text(
                 '$count',
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: primaryColor),
@@ -186,10 +162,116 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  Widget _buildManagementButton(BuildContext context, String title, IconData icon, String route) {
+  Widget _buildWorkspaceManagementSection(BuildContext context) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        'Workspace Management',
+        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: primaryColor),
+      ),
+      SizedBox(height: 10),
+      _buildManagementButton(
+        context,
+        'Create Workspace',
+        Icons.add,
+        MaterialPageRoute(builder: (context) => CreateWorkspacePage()),
+      ),
+      SizedBox(height: 20),
+      _buildManagementButton(
+        context,
+        'Add Users',
+        Icons.person_add,
+        MaterialPageRoute(builder: (context) => SignUpScreen()),
+      ),
+      SizedBox(height: 20),
+      _buildManagementButton(
+        context,
+        'Remove Users',
+        Icons.person_remove,
+        MaterialPageRoute(builder: (context) => RemoveUserPage()),
+      ),
+    
+
+        SizedBox(height: 20),
+        _buildManagementButton(
+          context,
+          'View Team Progress',
+          Icons.bar_chart,
+          MaterialPageRoute(builder: (context) => TeamProgressPage()),
+        ),
+  //     ],
+  //   );
+  // }
+
+  // Widget _buildTaskManagementSection(BuildContext context) {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       Text(
+  //         'Task Management',
+  //         style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: primaryColor),
+  //       ),
+  //       SizedBox(height: 10),
+  //       _buildManagementButton(
+  //         context,
+  //         'Assign Tasks',
+  //         Icons.assignment_turned_in,
+  //         MaterialPageRoute(builder: (context) => AssignTasksPage()),
+  //       ),
+  //       SizedBox(height: 20),
+  //       _buildManagementButton(
+  //         context,
+  //         'Task List',
+  //         Icons.list,
+  //         MaterialPageRoute(builder: (context) => TaskListPage()),
+  //       ),
+      ],
+    );
+  }
+
+  // Widget _buildTimeTrackingSection(BuildContext context) {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       Text(
+  //         'Time Tracking',
+  //         style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: primaryColor),
+  //       ),
+  //       SizedBox(height: 10),
+  //       // _buildManagementButton(
+  //       //   context,
+  //       //   'View Time Logs',
+  //       //   Icons.access_time,
+  //       //   MaterialPageRoute(builder: (context) => TimeLogsPage()),
+  //       // ),
+  //     ],
+  //   );
+  // }
+
+  // Widget _buildCommunicationSection(BuildContext context) {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       Text(
+  //         'Communication',
+  //         style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: primaryColor),
+  //       ),
+  //       SizedBox(height: 10),
+  //       // _buildManagementButton(
+  //       //   context,
+  //       //   'Messages',
+  //       //   Icons.message,
+  //       //   MaterialPageRoute(builder: (context) => MessagesPage()),
+  //       // ),
+  //     ],
+  //   );
+  // }
+
+  Widget _buildManagementButton(BuildContext context, String title, IconData icon, MaterialPageRoute route) {
     return ElevatedButton.icon(
       onPressed: () {
-        Navigator.pushNamed(context, route);
+        Navigator.push(context, route);
       },
       icon: Icon(icon, size: 24),
       label: Text(title),
